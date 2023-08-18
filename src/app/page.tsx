@@ -1,113 +1,161 @@
-import Image from 'next/image'
+'use client'
+import { Bricolage_Grotesque } from 'next/font/google'
+import Script from 'next/script'
+import { useEffect, useRef, useState } from 'react'
+
+const bricolage_800 = Bricolage_Grotesque({ subsets: ['latin'],weight: '800' })
+const bricolage_500 = Bricolage_Grotesque({ subsets: ['latin'],weight: '500' })
+
 
 export default function Home() {
+
+  const [session, setSession] = useState(25)
+  const [breakLength, setBreakLenght] = useState(5)
+  const [clock, setClock] = useState('25:00')
+  const [play, setPlay] = useState(false)
+  const intervalId = useRef<ReturnType<typeof setInterval> | null>(null)
+  // : ReturnType<typeof setInterval>;
+
+  useEffect(() => {
+    if (play) {
+      intervalId.current = setInterval(() => {
+        let [minutes, seconds] = getTime(clock);
+        console.log(clock)
+        console.log(minutes)
+        console.log(seconds)
+        if (seconds === '00') { 
+          seconds = '59';
+          minutes = (Number(minutes) - 1).toString()
+        } else { 
+          seconds = (Number(seconds) -1).toString() 
+        }
+        if(Number(seconds) < 9) {
+          seconds = '0' + seconds;
+        }
+        if(Number(minutes) < 9) {
+          minutes = '0' + minutes; 
+        }
+        console.log(minutes)
+        console.log(seconds)
+        setClock(minutes + ':'+ seconds)
+      }, 1000);
+      console.log(intervalId)
+    }
+  } , [play,clock])
+
+  function handleDecrementSession() {
+    if(session === 1) return;
+    setSession(session => session - 1)
+    setClock(session.toString() + ':00')
+  }
+  function handleIncreaseSession() {
+    if(session===60) return;
+    setSession(session => session + 1)
+    setClock(session.toString() + ':00')
+  }
+  function handleDecrementBreak() {
+    if(breakLength === 1) return;
+    setBreakLenght(prev => prev -1)
+  }
+  function handleIncreaseBreak() {
+    if(breakLength===60) return;
+    setBreakLenght(prev => prev + 1)
+  }
+
+  function handleReset() {
+    setPlay(false);
+    setClock(session.toString() + ':00')
+    setBreakLenght(5);
+    console.log(intervalId)
+    clearInterval(Number(intervalId.current))
+    intervalId.current = null;
+  }
+
+  function handlePlayPause() {
+    if (play) {
+      clearInterval(Number(intervalId.current))
+    }
+    setPlay(!play)
+  }
+
+  function updateClock() {
+
+    let [minutes, seconds] = getTime(clock);
+    console.log(clock)
+    console.log(minutes)
+    console.log(seconds)
+    if (seconds === '00') {
+      seconds = '59';
+      minutes = (Number(minutes) - 1).toString()
+    } else { 
+      seconds = (Number(seconds) -1).toString() 
+    }
+    console.log(minutes)
+    console.log(seconds)
+    setClock(minutes + ':'+ seconds)
+      // if (date.getSeconds() === 0) {
+      //   if (session === 0) {
+      //     //play audio
+      //     setPlay(!play)
+      //   } else {
+      //     setClock((_) => {
+      //       date.setSeconds(date.getSeconds() -1)
+      //       return date.getMinutes().toString() + ':' + date.getSeconds().toString()
+      //     })
+      //     setSession(session => session -1)
+      //   }
+      // } else {
+      //   setClock(seconds => {
+      //     let numberSeconds = seconds === '00' ? 60 : Number(seconds)
+      //     return (numberSeconds - 1).toString()
+      //   })
+      // }
+  }
+
+  function getTime(clock:string) : Array<string> {
+    let minutes = clock.substring(0, clock.indexOf(':'))
+    let seconds = clock.substring(clock.indexOf(':') + 1, clock.length)
+    
+    return [minutes, seconds]
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <>
+    <Script src='https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js'></Script>
+    <main className={`h-screen flex flex-col items-center ${bricolage_800.className}`}>
+      <h1 className='text-2xl mt-44'>Pomodoro clock</h1>
+        <div className='flex justify-evenly w-full mt-16' id='menu'>
+          <div className='flex flex-col items-center' id='session-wrapper'>
+            <div id="session-length">session</div>
+            <div id="clock-and-buttons" className='flex gap-10'>
+              <button onClick={handleDecrementSession} className='text-3xl p-5'>-</button>
+              <div className='text-5xl py-5 mr-2 w-10' id="session-clock">{session > 9 ? session : '0' + session}</div>
+              <button onClick={handleIncreaseSession} className='text-3xl p-5'>+</button>
+            </div>
+          </div>
+          <div className='flex flex-col items-center' id='break-wrapper'>
+            <div id="break-session">break</div>
+            <div id="break-and-buttons" className='flex gap-10'>
+              <button onClick={handleDecrementBreak} className='text-3xl p-5'>-</button>
+              <div className='text-5xl py-5 w-10' id="break-clock">{breakLength > 9 ? breakLength : '0' + breakLength}</div>
+              <button onClick={handleIncreaseBreak} className='text-3xl p-5'>+</button>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+        <div className='flex flex-col items-center' id='break-wrapper'>
+            <div id="clock">clock</div>
+            <div className='text-8xl' id="clock">
+              {play ? clock : 
+              session > 9 ? session + ':00' : '0' + session + ':00'
+              }
+              
+            </div>
+        </div>
+        <div className='flex gap-10 mt-2' id="controls">
+          <button onClick={handlePlayPause}>play/pause</button>
+          <button onClick={handleReset}>reset</button>
+        </div>
     </main>
+    </>
   )
 }
