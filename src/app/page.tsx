@@ -9,49 +9,29 @@ const bricolage_500 = Bricolage_Grotesque({ subsets: ['latin'],weight: '500' })
 
 export default function Home() {
 
-  const [session, setSession] = useState(25)
+  const [seconds, setSeconds] = useState(0)
+  const [minutes, setMinutes] = useState(9)
+  const [session, setSession] = useState('9')
   const [breakLength, setBreakLenght] = useState(5)
   const [clock, setClock] = useState('25:00')
   const [play, setPlay] = useState(false)
   const intervalId = useRef<ReturnType<typeof setInterval> | null>(null)
+  const isPlaying = useRef(false)
   // : ReturnType<typeof setInterval>;
 
-  useEffect(() => {
-    if (play) {
-      intervalId.current = setInterval(() => {
-        let [minutes, seconds] = getTime(clock);
-        console.log(clock)
-        console.log(minutes)
-        console.log(seconds)
-        if (seconds === '00') { 
-          seconds = '59';
-          minutes = (Number(minutes) - 1).toString()
-        } else { 
-          seconds = (Number(seconds) -1).toString() 
-        }
-        if(Number(seconds) < 9) {
-          seconds = '0' + seconds;
-        }
-        if(Number(minutes) < 9) {
-          minutes = '0' + minutes; 
-        }
-        console.log(minutes)
-        console.log(seconds)
-        setClock(minutes + ':'+ seconds)
-      }, 1000);
-      console.log(intervalId)
-    }
-  } , [play,clock])
-
   function handleDecrementSession() {
-    if(session === 1) return;
-    setSession(session => session - 1)
-    setClock(session.toString() + ':00')
+    if(Number(session) === 1) return;
+    setSession(session => {
+      let next = (Number(session) - 1).toString()
+      return Number(next) < 10 ? '0' + next : next
+    })
   }
   function handleIncreaseSession() {
-    if(session===60) return;
-    setSession(session => session + 1)
-    setClock(session.toString() + ':00')
+    if(Number(session)===60) return;
+    setSession(session => {
+      let next = (Number(session) + 1).toString()
+      return Number(next) < 10 ? '0' + next : next
+    })
   }
   function handleDecrementBreak() {
     if(breakLength === 1) return;
@@ -71,11 +51,74 @@ export default function Home() {
     intervalId.current = null;
   }
 
-  function handlePlayPause() {
+  function handlePlayPause_b() {
+    console.log(play)
     if (play) {
       clearInterval(Number(intervalId.current))
+    } else {
+      intervalId.current = setInterval(() => {
+        let [minutes, seconds] = getTime(clock);
+        console.log(clock)
+        console.log(minutes)
+        console.log(seconds)
+        if (seconds === '00') { 
+          seconds = '59';
+          minutes = (Number(minutes) - 1).toString()
+        } else { 
+          seconds = (Number(seconds) -1).toString() 
+        }
+        if(Number(seconds) < 9) { 
+          seconds = '0' + seconds;
+        }
+        if(Number(minutes) < 9) {
+          minutes = '0' + minutes;  
+        }
+        console.log(minutes)
+        console.log(seconds)
+        setClock(minutes + ':'+ seconds)
+      }, 1000);
+      console.log(intervalId)
     }
     setPlay(!play)
+  }
+  console.log(session.toString())
+  console.log(clock)
+  function handlePlayPause() { 
+    isPlaying.current = !isPlaying.current
+    if (isPlaying.current) {
+      setClock(session.toString() + ':00')
+      console.log(clock)
+      intervalId.current = setInterval(() => {
+        // setSeconds(prev => {
+        //   if (prev === 0) {
+        //     return 59
+        //   } else {
+        //     return prev - 1;
+        //   }
+        // })
+        setClock(prev => {
+          let [minutes, seconds] = getTime(prev);
+          if (seconds === '00') { 
+            seconds = '59';
+            minutes = (Number(minutes) - 1).toString()
+          } else { 
+            seconds = (Number(seconds) -1).toString() 
+          }
+          if(Number(seconds) < 10) { 
+            seconds = '0' + seconds;
+          }
+          if(Number(minutes) < 10) {
+            minutes = '0' + Number(minutes);    
+          }
+          console.log(minutes)
+          console.log(seconds)
+          return minutes + ':' + seconds
+        })
+        console.log(seconds)
+      }, 1000)
+    } else {
+      clearInterval(Number(intervalId.current))
+    }
   }
 
   function updateClock() {
@@ -129,7 +172,7 @@ export default function Home() {
             <div id="session-length">session</div>
             <div id="clock-and-buttons" className='flex gap-10'>
               <button onClick={handleDecrementSession} className='text-3xl p-5'>-</button>
-              <div className='text-5xl py-5 mr-2 w-10' id="session-clock">{session > 9 ? session : '0' + session}</div>
+              <div className='text-5xl py-5 mr-2 w-10' id="session-clock">{session}</div>
               <button onClick={handleIncreaseSession} className='text-3xl p-5'>+</button>
             </div>
           </div>
@@ -145,10 +188,10 @@ export default function Home() {
         <div className='flex flex-col items-center' id='break-wrapper'>
             <div id="clock">clock</div>
             <div className='text-8xl' id="clock">
-              {play ? clock : 
-              session > 9 ? session + ':00' : '0' + session + ':00'
+              {isPlaying.current ? clock : 
+                                   session + ':00'
               }
-              
+              {/* {session} */}
             </div>
         </div>
         <div className='flex gap-10 mt-2' id="controls">
