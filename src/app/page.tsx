@@ -9,11 +9,9 @@ const bricolage_500 = Bricolage_Grotesque({ subsets: ['latin'],weight: '500' })
 
 export default function Home() {
 
-  const [seconds, setSeconds] = useState(0)
-  const [minutes, setMinutes] = useState(9)
-  const [session, setSession] = useState('9')
-  const [breakLength, setBreakLenght] = useState(5)
   const [clock, setClock] = useState('25:00')
+  const [session, setSession] = useState('25')
+  const [breakLength, setBreakLenght] = useState(5)
   const [play, setPlay] = useState(false)
   const intervalId = useRef<ReturnType<typeof setInterval> | null>(null)
   const isPlaying = useRef(false)
@@ -43,10 +41,9 @@ export default function Home() {
   }
 
   function handleReset() {
+    isPlaying.current = false;
     setPlay(false);
     setClock(session.toString() + ':00')
-    setBreakLenght(5);
-    console.log(intervalId)
     clearInterval(Number(intervalId.current))
     intervalId.current = null;
   }
@@ -85,17 +82,15 @@ export default function Home() {
   console.log(clock)
   function handlePlayPause() { 
     isPlaying.current = !isPlaying.current
-    if (isPlaying.current) {
+
+    if (!play) {
       setClock(session.toString() + ':00')
-      console.log(clock)
+      setPlay(true)
+    }
+
+    if (isPlaying.current) {
       intervalId.current = setInterval(() => {
-        // setSeconds(prev => {
-        //   if (prev === 0) {
-        //     return 59
-        //   } else {
-        //     return prev - 1;
-        //   }
-        // })
+
         setClock(prev => {
           let [minutes, seconds] = getTime(prev);
           if (seconds === '00') { 
@@ -110,11 +105,8 @@ export default function Home() {
           if(Number(minutes) < 10) {
             minutes = '0' + Number(minutes);    
           }
-          console.log(minutes)
-          console.log(seconds)
           return minutes + ':' + seconds
         })
-        console.log(seconds)
       }, 1000)
     } else {
       clearInterval(Number(intervalId.current))
@@ -188,10 +180,7 @@ export default function Home() {
         <div className='flex flex-col items-center' id='break-wrapper'>
             <div id="clock">clock</div>
             <div className='text-8xl' id="clock">
-              {isPlaying.current ? clock : 
-                                   session + ':00'
-              }
-              {/* {session} */}
+              {play ? clock : session + ':00'}
             </div>
         </div>
         <div className='flex gap-10 mt-2' id="controls">

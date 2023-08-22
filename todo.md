@@ -5,5 +5,8 @@
 (ok) github repository
 
 (ok) make numbers pause
-make numbers reset
-make minutes
+(ok) make numbers reset
+(ok) make minutes
+
+verify if two booleans is necessary to hold play state
+do .html with the script for tests
