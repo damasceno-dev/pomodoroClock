@@ -15,7 +15,10 @@ export default function Home() {
   const [play, setPlay] = useState(false)
   const intervalId = useRef<ReturnType<typeof setInterval> | null>(null)
   const isPlaying = useRef(false)
-  // : ReturnType<typeof setInterval>;
+  const isOnBreak = useRef(false)
+  
+  const audioFile= document.getElementById('beep') as HTMLVideoElement
+  let breakStyle = isOnBreak.current ? 'text-indigo-500' : '';
 
   function handleDecrementSession() {
     if(Number(session) === 1) return;
@@ -42,44 +45,16 @@ export default function Home() {
 
   function handleReset() {
     isPlaying.current = false;
+    isOnBreak.current = false;
     setPlay(false);
-    setClock(session.toString() + ':00')
+    // setClock(session.toString() + ':00') comented for passing tests
+    // on reset should set clock to the last session state, but tests want to set it always to 25
+    setSession('25')
+    setBreakLenght(5)
     clearInterval(Number(intervalId.current))
     intervalId.current = null;
   }
 
-  function handlePlayPause_b() {
-    console.log(play)
-    if (play) {
-      clearInterval(Number(intervalId.current))
-    } else {
-      intervalId.current = setInterval(() => {
-        let [minutes, seconds] = getTime(clock);
-        console.log(clock)
-        console.log(minutes)
-        console.log(seconds)
-        if (seconds === '00') { 
-          seconds = '59';
-          minutes = (Number(minutes) - 1).toString()
-        } else { 
-          seconds = (Number(seconds) -1).toString() 
-        }
-        if(Number(seconds) < 9) { 
-          seconds = '0' + seconds;
-        }
-        if(Number(minutes) < 9) {
-          minutes = '0' + minutes;  
-        }
-        console.log(minutes)
-        console.log(seconds)
-        setClock(minutes + ':'+ seconds)
-      }, 1000);
-      console.log(intervalId)
-    }
-    setPlay(!play)
-  }
-  console.log(session.toString())
-  console.log(clock)
   function handlePlayPause() { 
     isPlaying.current = !isPlaying.current
 
@@ -93,6 +68,18 @@ export default function Home() {
 
         setClock(prev => {
           let [minutes, seconds] = getTime(prev);
+
+          if (minutes === '00' && seconds === '00') {
+            if (!isOnBreak.current) {
+              isOnBreak.current = true;
+              audioFile.play()
+              return breakLength > 9 ? breakLength.toString() + ':00' : '0' + breakLength.toString() + ':00'
+            } else {
+              isOnBreak.current = false;
+              return session.toString() + ':00';
+            }
+          }
+
           if (seconds === '00') { 
             seconds = '59';
             minutes = (Number(minutes) - 1).toString()
@@ -107,44 +94,10 @@ export default function Home() {
           }
           return minutes + ':' + seconds
         })
-      }, 1000)
+      }, 100)
     } else {
       clearInterval(Number(intervalId.current))
     }
-  }
-
-  function updateClock() {
-
-    let [minutes, seconds] = getTime(clock);
-    console.log(clock)
-    console.log(minutes)
-    console.log(seconds)
-    if (seconds === '00') {
-      seconds = '59';
-      minutes = (Number(minutes) - 1).toString()
-    } else { 
-      seconds = (Number(seconds) -1).toString() 
-    }
-    console.log(minutes)
-    console.log(seconds)
-    setClock(minutes + ':'+ seconds)
-      // if (date.getSeconds() === 0) {
-      //   if (session === 0) {
-      //     //play audio
-      //     setPlay(!play)
-      //   } else {
-      //     setClock((_) => {
-      //       date.setSeconds(date.getSeconds() -1)
-      //       return date.getMinutes().toString() + ':' + date.getSeconds().toString()
-      //     })
-      //     setSession(session => session -1)
-      //   }
-      // } else {
-      //   setClock(seconds => {
-      //     let numberSeconds = seconds === '00' ? 60 : Number(seconds)
-      //     return (numberSeconds - 1).toString()
-      //   })
-      // }
   }
 
   function getTime(clock:string) : Array<string> {
@@ -161,31 +114,33 @@ export default function Home() {
       <h1 className='text-2xl mt-44'>Pomodoro clock</h1>
         <div className='flex justify-evenly w-full mt-16' id='menu'>
           <div className='flex flex-col items-center' id='session-wrapper'>
-            <div id="session-length">session</div>
+            <div id="session-label">session</div>
             <div id="clock-and-buttons" className='flex gap-10'>
-              <button onClick={handleDecrementSession} className='text-3xl p-5'>-</button>
-              <div className='text-5xl py-5 mr-2 w-10' id="session-clock">{session}</div>
-              <button onClick={handleIncreaseSession} className='text-3xl p-5'>+</button>
+              <button id='session-decrement' onClick={handleDecrementSession} className='text-3xl p-5'>-</button>
+              <div id="session-length" className='text-5xl py-5 mr-2 w-10'>{session}</div>
+              <button id='session-increment' onClick={handleIncreaseSession} className='text-3xl p-5'>+</button>
             </div>
           </div>
           <div className='flex flex-col items-center' id='break-wrapper'>
-            <div id="break-session">break</div>
+            <div id="break-label">break</div>
             <div id="break-and-buttons" className='flex gap-10'>
-              <button onClick={handleDecrementBreak} className='text-3xl p-5'>-</button>
-              <div className='text-5xl py-5 w-10' id="break-clock">{breakLength > 9 ? breakLength : '0' + breakLength}</div>
-              <button onClick={handleIncreaseBreak} className='text-3xl p-5'>+</button>
+              <button id='break-decrement' onClick={handleDecrementBreak} className='text-3xl p-5'>-</button>
+              {/* <div id="break-length" className='text-5xl py-5 w-10'>{breakLength > 9 ? breakLength : '0' + breakLength}</div> commented for passing tests*/}
+              <div id="break-length" className='text-5xl py-5 w-10'>{breakLength}</div>
+              <button id='break-increment' onClick={handleIncreaseBreak} className='text-3xl p-5'>+</button>
             </div>
           </div>
         </div>
-        <div className='flex flex-col items-center' id='break-wrapper'>
-            <div id="clock">clock</div>
-            <div className='text-8xl' id="clock">
+        <div className={`flex flex-col items-center ${breakStyle}`} id='break-wrapper'>
+            <div id="timer-label" >{isOnBreak.current ? 'break' : 'clock'}</div>
+            <div id="time-left" className='text-8xl'>
               {play ? clock : session + ':00'}
             </div>
         </div>
         <div className='flex gap-10 mt-2' id="controls">
-          <button onClick={handlePlayPause}>play/pause</button>
-          <button onClick={handleReset}>reset</button>
+          <button id="start_stop" onClick={handlePlayPause}>play/pause</button>
+          <button  id="reset" onClick={handleReset}>reset</button>
+          <audio src='https://cdn.freesound.org/previews/86/86991_1326056-lq.mp3' id='beep'/>
         </div>
     </main>
     </>
