@@ -1,8 +1,31 @@
-'use client'
-import { Bricolage_Grotesque } from 'next/font/google'
-import React, {  useRef, useState } from 'react'
+<html>
+    <div id="root"></div>
+//I used on this codepen: typescript as processor, tailwind, webfont loader and the fcc test cdn as external scripts.
 
-const bricolage_800 = Bricolage_Grotesque({ subsets: ['latin'],weight: '800' })
+to use google fonts, I've imported the fonts on the .js file with the WebFont loader, and used the jsx style attribute to set the fonts for the individual elements. E. g.:
+
+	WebFont.load({
+		google: {
+			families: ['Orbitron:400', 'Nova+Square:400']
+		}
+	});
+...
+style={{fontFamily: 'Nova Square'}}
+</html>
+
+<script>
+    'use client'
+import React, { useState, useRef } from "https://cdn.skypack.dev/react@17.0.1"
+import ReactDOM from "https://cdn.skypack.dev/react-dom@17.0.1"
+
+	WebFont.load({
+		google: {
+			families: ['Bricolage+Grotesque:800']
+		}
+	});
+
+const app = document.getElementById('root');
+ReactDOM.render(<Home/>, app);
 
 export default function Home() {
 
@@ -10,14 +33,15 @@ export default function Home() {
   const [session, setSession] = useState('25')
   const [breakLength, setBreakLenght] = useState(5)
   const [play, setPlay] = useState(false)
-
   const intervalId = useRef<ReturnType<typeof setInterval> | null>(null)
   const isPlaying = useRef(false)
   const isOnBreak = useRef(false)
+
   const audioRef = useRef<HTMLVideoElement>(null)
 
+  // const audioFile= document.getElementById('beep') as HTMLVideoElement;
   let breakStyle = isOnBreak.current ? 'text-indigo-500' : '';
-  const intervalTime = 1000;
+  const intervalTime = 100;
 
   function handleDecrementSession() {
     if(Number(session) === 1) return;
@@ -36,12 +60,10 @@ export default function Home() {
       return next
     })
   }
-
   function handleDecrementBreak() {
     if(breakLength === 1) return;
     setBreakLenght(prev => prev -1)
   }
-  
   function handleIncreaseBreak() {
     if(breakLength===60) return;
     setBreakLenght(prev => prev + 1)
@@ -57,6 +79,8 @@ export default function Home() {
     setBreakLenght(5)
     clearInterval(Number(intervalId.current))
     intervalId.current = null;
+    // audioFile.pause()
+    // audioFile.currentTime = 0;
     if (audioRef.current != undefined) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
@@ -82,6 +106,7 @@ export default function Home() {
           if (minutes === '00' && seconds === '00') {
             if (!isOnBreak.current) {
               isOnBreak.current = true;
+              // audioFile.play()
               audioRef.current?.play();
               return breakLength > 9 ? breakLength.toString() + ':00' : '0' + breakLength.toString() + ':00'
             } else {
@@ -118,9 +143,8 @@ export default function Home() {
   }
 
   return (
-    <main className={`h-screen flex flex-col items-center ${bricolage_800.className}`}>
-    {/* <main style={{fontFamily: 'Bricolage Grotesque'}} className={`bg-black text-white h-screen flex flex-col items-center`}> => use this tag on codepen */}
-      <h1 className='text-2xl mt-28'>Pomodoro clock</h1>
+    <main style={{fontFamily: 'Bricolage Grotesque'}} className={`bg-black text-white h-screen flex flex-col items-center`}>
+      <h1 className='text-2xl mt-20'>Pomodoro clock</h1>
         <div className='flex justify-evenly w-full mt-16' id='menu'>
           <div className='flex flex-col items-center' id='session-wrapper'>
             <div id="session-label">session</div>
@@ -154,3 +178,4 @@ export default function Home() {
     </main>
   )
 }
+</script>
